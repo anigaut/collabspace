@@ -48,7 +48,7 @@ const selectedRole = ref('student');
 const router = useRouter();
 
 const register = async () => {
-  if (!firstName.value || !lastName.value || !email.value || !password.value || !password2.value) {
+  if (!firstName.value || !lastName.value || !email.value || !password.value || !password2.value || !selectedRole.value) {
     alert('All fields are required.');
     return;
   }

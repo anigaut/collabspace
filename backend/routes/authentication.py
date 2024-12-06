@@ -33,7 +33,7 @@ def register():
     last_name = data["last_name"]
     email = data["email"]
     password = data["password"]
-    # password_hash = generate_password_hash(data["password"])
+    password_hash = generate_password_hash(data["password"])
     role = data["role"]
 
     if Users.query.filter_by(email=email).first():
@@ -43,8 +43,7 @@ def register():
         first_name=first_name,
         last_name=last_name,
         email=email,
-        password_hash=password,
-        # password_hash=password_hash,
+        password_hash=password_hash,
         role=role
     )
 
@@ -81,8 +80,8 @@ def login():
     if not user:
         return jsonify({"message": f"A {role} with this email does not exist"}), 400
 
-    # if not check_password_hash(user.pasword_hash, password):
-    #     return jsonify({"message": "Incorrect Password"}), 400
+    if not check_password_hash(user.password_hash, password):
+        return jsonify({"message": "Incorrect Password"}), 400
 
     access_token = create_access_token(identity=user.id,
                                        expires_delta=timedelta(days=10),
@@ -104,7 +103,6 @@ def login():
 
 
 @auth.route("/logout", methods=["POST"])
-# @jwt_required()
 def logout():
     response = jsonify({"message": "Logged out Successfully"})
     unset_jwt_cookies(response)

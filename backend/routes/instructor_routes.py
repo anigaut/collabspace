@@ -35,7 +35,6 @@ def validate_milestone_input(data):
 
 
 @instructor.route("/create_milestone", methods=["POST"])
-# @jwt_required()
 # @role_required("instructor")
 def create_milestone():
     data = request.get_json()
@@ -99,7 +98,6 @@ def create_milestone():
 
 
 @instructor.route("/update_milestone/<int:milestone_id>", methods=["POST"])
-# @jwt_required()
 # @role_required("instructor") 
 def update_milestone(milestone_id):
     milestone = Milestones.query.get(milestone_id)
@@ -150,7 +148,6 @@ def update_milestone(milestone_id):
 
 
 @instructor.route("/delete_milestone/<int:milestone_id>", methods=["DELETE"])
-# @jwt_required()
 # @role_required("instructor")
 def delete_milestone(milestone_id):
     milestone = Milestones.query.get(milestone_id)
