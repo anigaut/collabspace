@@ -138,7 +138,7 @@
       for (const milestone of milestoneData) {
         try {
           const submissionResponse = await axios.get(
-            `http://127.0.0.1:5000/student/get_submission/${milestone.id}`
+            `http://127.0.0.1:5000/api/student/get_submission/${milestone.id}`
           );
           milestone.status = "completed";
         } catch (error) {

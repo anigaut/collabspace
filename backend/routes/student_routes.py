@@ -135,17 +135,6 @@ def get_all_milestones():
         return jsonify({"error": str(e)}), 500
 
 
-# # create mentorship session()
-# # delete mentorship session()
-# # update mentorship session()
-# @student.route('/mentorship_sessions', methods=['GET'])
-# def list_mentorship_sessions():
-#     sessions = MentorshipSessions.query.all()
-#     result = [{"id": session.id, "description": session.description,
-#                "price": session.price, "mentor_name": session.mentor_name} for session in sessions]
-#     return jsonify(result)
-
-
 @student.route('/book_viva_slot/<int:slot_id>', methods=['POST'])
 # @jwt_required()  # Assuming JWT authentication to identify the student
 def book_viva_slot(slot_id):
@@ -175,75 +164,31 @@ def book_viva_slot(slot_id):
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
-# # make_milestone_submissions() -> rag, submit()
+################################################################################################
 
-# # pending
-# @student.route('/mentorship_sessions/register', methods=['POST'])
-# def register_mentorship_session():
-#     data = request.get_json()
+# @student.route('/mentorship_sessions/<int:session_id>/request', methods=['POST'])
+# def request_mentorship_session(session_id):
+#     data = request.json
+#     student_id = data['student_id']
 #     try:
-#         registration = MentorshipRegistrations(
-#             student_id=data['student_id'],
-#             mentorship_session=data['session_id']
-#         )
-#         db.session.add(registration)
+#         session = MentorshipSession.query.get(session_id)
+#         if not session:
+#             return jsonify({"error": "Session not found."}), 404
+
+#         # Check if the student already requested this session
+#         existing_request = db.session.query(mentorship_requests).filter_by(session_id=session_id, student_id=student_id).first()
+#         if existing_request:
+#             return jsonify({"error": "You have already requested this session."}), 400
+
+#         # Add the request
+#         stmt = mentorship_requests.insert().values(session_id=session_id, student_id=student_id, status='pending')
+#         db.session.execute(stmt)
 #         db.session.commit()
-#         return jsonify({"message": "Registered for mentorship session successfully."}), 201
+#         return jsonify({"message": "Mentorship session requested successfully."}), 200
 #     except Exception as e:
 #         return jsonify({"error": str(e)}), 400
 
-# @student.route('/mentorship_session/request', methods=['POST'])
-# def request_mentorship_session():
-#     data = request.get_json()
-#     session_request = MentorshipSessionRequests(
-#         student_id=data['student_id'],
-#         ta_id=data['ta_id'],
-#         requested_date=datetime.strptime(data['requested_date'], "%Y-%m-%d"),
-#         requested_time=datetime.strptime(data['requested_time'], "%H:%M").time()
-#     )
-#     db.session.add(session_request)
-#     db.session.commit()
-#     return jsonify({"message": "Mentorship session requested successfully."}), 201
-
-# @student.route('/mentorship_session/update/<int:request_id>', methods=['PUT'])
-# def update_mentorship_session(request_id):
-#     data = request.get_json()
-#     session_request = MentorshipSessionRequests.query.get(request_id)
-
-#     if not session_request:
-#         return jsonify({"error": "Request not found"}), 404
-
-#     session_request.requested_date = datetime.strptime(data['requested_date'], "%Y-%m-%d")
-#     session_request.requested_time = datetime.strptime(data['requested_time'], "%H:%M").time()
-#     session_request.status = "pending"
-
-#     db.session.commit()
-#     return jsonify({"message": "Mentorship session updated successfully."}), 200
-
-# @student.route('/mentorship_session/delete/<int:request_id>', methods=['DELETE'])
-# def delete_mentorship_session(request_id):
-#     session_request = MentorshipSessionRequests.query.get(request_id)
-
-#     if not session_request:
-#         return jsonify({"error": "Request not found"}), 404
-
-#     session_request.status = "deleted"
-#     db.session.commit()
-#     return jsonify({"message": "Mentorship session deleted successfully."}), 200
-
-# @student.route('/viva_slot/book', methods=['POST'])
-# def book_viva_slot():
-#     data = request.get_json()
-#     viva_slot = VivaSlots.query.get(data['slot_id'])
-
-#     if not viva_slot or viva_slot.status != "available":
-#         return jsonify({"error": "Slot not available"}), 400
-
-#     viva_slot.student_id = data['student_id']
-#     viva_slot.status = "booked"
-#     db.session.commit()
-
-#     return jsonify({"message": "Viva slot booked successfully."}), 201
+################################################################################################
 
 @student.route("/submit_milestone/<int:milestone_id>/<int:student_id>", methods=["POST"])
 def submit_milestone(milestone_id, student_id):
@@ -273,14 +218,11 @@ def submit_milestone(milestone_id, student_id):
     }), 200
 
 
-@student.route("/get_submission/<int:milestone_id>/<int:student_id>", methods=["GET"])
+@student.route("/get_submission/<int:milestone_id>", methods=["GET"])
 # @role_required("student")
-def get_submission(milestone_id, student_id):
-    """
-    If no submission has been made yet, the submission form should be available. If a submission has been made,
-    the GitHub link, feedback and marks should be displayed. Editing milestones is not allowed
-    """
+def get_submission(milestone_id):
     # student_id = request.get_json().get("student_id")
+    student_id = 1
     submission = MilestoneSubmissions.query.filter_by(student_id=student_id, milestone_id=milestone_id).first()
     if not submission:
         return jsonify({

@@ -146,17 +146,33 @@ export default {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
-    
 }
 
 /* Container Layout */
 .container {
-    
     margin: 100px auto 0 auto;
     display: flex;
     height: 100vh;
     background-color: #121212;
     font-family: 'Roboto', sans-serif;
+    position: relative;
+    /* Ensure pseudo-element is placed correctly */
+}
+
+/* Background Texture (Pattern) */
+.container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: url('https://www.transparenttextures.com/patterns/cubes.png');
+    opacity: 0.15;
+    /* Adjust opacity as needed */
+    z-index: 1;
+    pointer-events: none;
+    /* Prevent it from capturing mouse events */
 }
 
 /* Sidebar Styles */
@@ -230,6 +246,9 @@ export default {
     flex-direction: column;
     color: #ffffff;
     background-color: #1e1e2f;
+    position: relative;
+    /* Ensure content is above the texture */
+    z-index: 2;
 }
 
 .main-content h1 {
@@ -416,3 +435,4 @@ export default {
     }
 }
 </style>
+

@@ -389,6 +389,7 @@ def check_plagiarism():
     plagiarism_results = []
     total_score = 0
     comparison_count = 0
+    overall_status = "pass"  # Default status is 'pass' until proven otherwise
 
     for submission in other_submissions:
         print(
@@ -399,7 +400,7 @@ def check_plagiarism():
         if submission.github_branch_link == new_repo_url:
             print("Identical repository found. Assigning 100% similarity.")
             score = 100.0
-            status = "fail"
+            status = "fail"  # Identical repo should be a fail
         else:
             existing_repo_code = fetch_github_code(submission.github_branch_link)
             if existing_repo_code is None or existing_repo_code.strip() == "":
@@ -415,6 +416,10 @@ def check_plagiarism():
             score = compare_code(new_repo_code, existing_repo_code)
             print(f"Similarity score: {score}")
             status = "fail" if score >= 30 else "pass"
+
+            # If any comparison fails (score >= 30), mark the overall status as "fail"
+            if status == "fail":
+                overall_status = "fail"
 
         total_score += score
         comparison_count += 1
@@ -436,15 +441,28 @@ def check_plagiarism():
         # **Update the submission with the plagiarism score and status**
         submission.plagiarism_score = score
         submission.plagiarism_status = status
+        print(
+            f"Updated submission ID {submission.id}: score = {score}, status = {status}"
+        )
 
     # Calculate overall score
     overall_score = (total_score / comparison_count) if comparison_count > 0 else 0
     print(f"Overall plagiarism score: {overall_score}")
 
+    # **Update the student's plagiarism status (the one being checked)**
+    student_to_update = Users.query.get(student_id)
+    if student_to_update:
+        student_to_update.plagiarism_score = overall_score
+        student_to_update.plagiarism_status = overall_status
+        print(
+            f"Updated student ID {student_id}: overall_score = {overall_score}, status = {overall_status}"
+        )
+
     # **Commit the changes to the database**
     try:
+        print("Committing changes to the database...")
         db.session.commit()
-        print("Plagiarism scores updated in the database.")
+        print("Plagiarism scores and statuses updated in the database.")
     except Exception as e:
         db.session.rollback()
         print(f"Error saving plagiarism scores to the database: {e}")

@@ -2,9 +2,7 @@ from datetime import datetime
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 
-
 db = SQLAlchemy()
-
 
 class Users(db.Model):
     id = db.Column(db.Integer(), primary_key=True)
@@ -14,7 +12,29 @@ class Users(db.Model):
     password_hash = db.Column(db.String(), nullable=False)
     role = db.Column(db.String(), nullable=False)
     github_repo = db.Column(db.String(), nullable=True)  # only for students
+    
+    # Relationships
+    messages_sent = db.relationship('Messages', foreign_keys='Messages.sender_id', backref='sender', lazy=True)
+    messages_received = db.relationship('Messages', foreign_keys='Messages.receiver_id', backref='receiver', lazy=True)
 
+
+class Message(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    sender_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    receiver_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    message = db.Column(db.Text, nullable=False)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    read = db.Column(db.Boolean, default=False)
+
+
+class Conversations(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user1_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    user2_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    last_message = db.Column(db.Text, nullable=True)
+    last_updated = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+##########################################################################
 
 class Milestones(db.Model):
     id = db.Column(db.Integer(), primary_key=True)

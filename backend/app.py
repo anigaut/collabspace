@@ -15,6 +15,7 @@ from routes.admin_routes import admin
 from routes.authentication import auth
 from routes.rag_routes import rag 
 from routes.pdf_routes import pdf
+from routes.chat_routes import chat
 
 from celery_worker import celery_init_app
 from celery.result import AsyncResult
@@ -44,6 +45,7 @@ app.register_blueprint(admin, url_prefix="/api/admin")
 app.register_blueprint(auth, url_prefix="/api/auth")
 app.register_blueprint(rag, url_prefix="/api/rag")
 app.register_blueprint(pdf, url_prefix="/api/pdf")
+app.register_blueprint(chat, url_prefix="/api/chat")
 
 # JWT initializing for authentication
 app.config['JWT_SECRET_KEY'] = os.urandom(24)
@@ -51,13 +53,18 @@ jwt = JWTManager(app)
 
 celery_app = celery_init_app(app)
 
-from tasks import send_deadline_reminder
+from tasks import send_deadline_reminder, send_instructor_report
 def setup_periodic_tasks(sender, **kwargs):
 
     sender.add_periodic_task(
-        crontab(hour=18, minute=23),
+        crontab(hour=17, minute=30),
 
         send_deadline_reminder.s(),
+    )
+
+    sender.add_periodic_task(
+        crontab(hour=17, minute=32),
+        send_instructor_report.s(),
     )
 
 celery_app.on_after_configure.connect(setup_periodic_tasks)

@@ -174,9 +174,12 @@ body {
   top: 0;
   left: 0;
   width: 350px;
-  /* Increased width of the sidebar */
   height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  /* Add a gradient background with texture */
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%),
+    url('https://www.transparenttextures.com/patterns/cubes.png');
+  background-blend-mode: overlay;
+  /* Ensures the gradient and texture blend */
   color: #ffffff;
   padding: 30px 25px;
   box-shadow: 2px 0 12px rgba(0, 0, 0, 0.1);
@@ -443,3 +446,4 @@ body {
   }
 }
 </style>
+

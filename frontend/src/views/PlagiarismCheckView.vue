@@ -24,12 +24,18 @@
         </div>
 
         <div v-if="isLoading" class="loading">
-            Loading students...
+            Checking Plagiarism, please wait...
         </div>
 
         <div v-if="!isLoading && students.length === 0" class="no-students">
             No students found. Please add students to the database.
         </div>
+
+        <!-- Loader visible during plagiarism check -->
+        <div v-if="isLoading" class="loader-container">
+            <div class="loader"></div>
+        </div>
+
 
         <div v-if="score !== null" class="score-card">
             <div class="score-circle" :style="scoreStyle">
@@ -71,7 +77,7 @@ export default {
             githubRepoLink: '',
             selectedStudentId: '',
             students: [],
-            isLoading: false,
+            isLoading: false,  // use this to control loader visibility
             score: null,
             plagiarismResults: [],
         };
@@ -82,7 +88,6 @@ export default {
     computed: {
         scoreStyle() {
             if (this.score === null) return {};
-            // Ensure the score does not exceed 100%
             const normalizedScore = Math.min(Math.max(this.score, 0), 100);
             const degree = (normalizedScore / 100) * 360;
             return {
@@ -93,17 +98,17 @@ export default {
     },
     methods: {
         async fetchStudents() {
-            this.isLoading = true;
+            this.isLoading = true;  // Show loader while fetching students
             try {
                 console.log("Fetching students...");
-                const response = await axios.get('http://127.0.0.1:5000/api/ta/get_students');  // Absolute path
+                const response = await axios.get('http://127.0.0.1:5000/api/ta/get_students');
                 console.log("Students fetched:", response.data);
                 this.students = response.data;
             } catch (error) {
                 console.error('Error fetching students:', error);
                 alert('Failed to load students. Please try again later.');
             } finally {
-                this.isLoading = false;
+                this.isLoading = false;  // Hide loader after fetching students
             }
         },
 
@@ -113,8 +118,10 @@ export default {
                 return;
             }
 
+            this.isLoading = true;  // Show loader during plagiarism check
+
             try {
-                const response = await axios.post('http://127.0.0.1:5000/api/ta/check_plagiarism', {  // Absolute path
+                const response = await axios.post('http://127.0.0.1:5000/api/ta/check_plagiarism', {
                     github_repo_link: this.githubRepoLink,
                     student_id: this.selectedStudentId,
                 });
@@ -123,23 +130,24 @@ export default {
                 this.score = overall_score;
                 this.plagiarismResults = plagiarism_results;
                 console.log("Plagiarism results received:", response.data);
+
             } catch (error) {
                 console.error('Error checking plagiarism:', error);
                 if (error.response) {
-                    // Server responded with a status other than 200
                     alert(`Error: ${error.response.data.error}`);
                 } else if (error.request) {
-                    // No response received
                     alert('Error: No response from the server.');
                 } else {
-                    // Other errors
                     alert('An unexpected error occurred.');
                 }
+            } finally {
+                this.isLoading = false;  // Hide loader after plagiarism check completes
             }
         },
     },
 };
 </script>
+
 
 <style scoped>
 /* Reset some basic styles */
@@ -151,6 +159,66 @@ export default {
 
 /* Import Roboto Font */
 @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+
+/* Loader Styles */
+.loader-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100px;
+    /* Adjust based on your layout */
+    text-align: center;
+    z-index: 10;
+    /* Ensure it's above other elements */
+}
+
+.loader {
+    width: 28px;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: #E3AAD6;
+    transform-origin: top;
+    display: grid;
+    animation: l3-0 1s infinite linear;
+}
+
+.loader::before,
+.loader::after {
+    content: "";
+    grid-area: 1/1;
+    background: #F4DD51;
+    border-radius: 50%;
+    transform-origin: top;
+    animation: inherit;
+    animation-name: l3-1;
+}
+
+.loader::after {
+    background: #F10C49;
+    --s: 180deg;
+}
+
+@keyframes l3-0 {
+
+    0%,
+    20% {
+        transform: rotate(0);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes l3-1 {
+    50% {
+        transform: rotate(var(--s, 90deg));
+    }
+
+    100% {
+        transform: rotate(0);
+    }
+}
 
 /* General Container */
 .plagiarism-check-container {
