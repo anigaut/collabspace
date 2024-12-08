@@ -12,7 +12,7 @@ from dotenv import load_dotenv
 import os
 
 load_dotenv()  
-
+ 
 from routes.authentication import *
 ta = Blueprint("ta", __name__)
 

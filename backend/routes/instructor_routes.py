@@ -7,6 +7,73 @@ from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt  # type: 
 instructor = Blueprint("instructor", __name__)
 
 
+@instructor.route("/student_progress/<int:student_id>", methods=["GET"])
+def get_student_progress(student_id):
+    """
+    Fetch student's project progress for an instructor
+    """
+    try:
+        # Check if student exists
+        student = Users.query.filter_by(id=student_id, role="student").first()
+        if not student:
+            return jsonify({"error": "Student not found"}), 404
+
+        # Fetch submissions for the student
+        submissions = MilestoneSubmissions.query.filter_by(student_id=student_id).all()
+        if not submissions:
+            # No submissions found, send specific message
+            return jsonify({
+                "message": "No submissions yet"
+            }), 200
+
+        progress = []
+        for submission in submissions:
+            milestone = Milestones.query.get(submission.milestone_id)
+            progress.append({
+                "milestone_title": milestone.title,
+                "milestone_description": milestone.description,
+                "date_issued": milestone.date_issued.strftime("%Y-%m-%d"),
+                "deadline": milestone.deadline.strftime("%Y-%m-%d"),
+                "submission_github_link": submission.github_branch_link,
+                "marks": submission.marks,
+                "instructor_feedback": submission.instructor_feedback,
+                "plagiarism_score": submission.plagiarism_score,
+                "plagiarism_status": submission.plagiarism_status,
+            })
+
+        return jsonify({
+            "student_id": student.id,
+            "student_name": f"{student.first_name} {student.last_name}",
+            "github_repo": student.github_repo,
+            "progress": progress
+        }), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+
+@instructor.route("/students", methods=["GET"])
+# @jwt_required()  
+def get_students():
+    try:
+        # Fetch all users with the role "student"
+        students = Users.query.filter_by(role="student").all()
+        students_data = [
+            {
+                "id": student.id,
+                "first_name": student.first_name,
+                "last_name": student.last_name,
+                "email": student.email,
+            }
+            for student in students
+        ]
+        return jsonify({"students": students_data}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+    
+
+
 def validate_milestone_input(data):
     errors = []
     if not data.get("title"):

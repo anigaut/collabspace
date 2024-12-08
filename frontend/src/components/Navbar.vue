@@ -12,6 +12,7 @@
       <RouterLink to="/chatUsers" class="nav-item">Chat</RouterLink>
       <RouterLink to="/summaryai" class="nav-item">Summarizer</RouterLink>
       <RouterLink to="/plagiarism-check" class="navbar-link">Plagiarism</RouterLink>
+      <RouterLink to="/students" class="nav-item">Students</RouterLink> <!-- New link -->
     </div>
 
     <!-- Hamburger icon (only shown on small screens) -->
