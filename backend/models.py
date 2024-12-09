@@ -86,17 +86,18 @@ class ChatbotInteractions(db.Model):
     query = db.Column(db.String(), nullable=False)
     response = db.Column(db.String(), nullable=False)
 
-class MentorshipSessionRequests(db.Model):
+class MentorshipSession(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    student_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    ta_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    requested_date = db.Column(db.DateTime, nullable=False)
-    requested_time = db.Column(db.Time, nullable=False)
-    status = db.Column(db.String(50), default="pending")  # pending, accepted, deleted
+    student_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)  
+    ta_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)  
+    session_date = db.Column(db.DateTime, nullable=False)
+    session_time = db.Column(db.Time, nullable=False)
+    status = db.Column(db.String(50), default="pending") 
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     student = db.relationship('Users', foreign_keys=[student_id])
     ta = db.relationship('Users', foreign_keys=[ta_id])
+
 
 class VivaSlots(db.Model):
     id = db.Column(db.Integer, primary_key=True)
