@@ -164,31 +164,32 @@ def book_viva_slot(slot_id):
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
-################################################################################################
+@student.route('/book_mentorship_session/<int:session_id>', methods=['POST'])
+def book_mentorship_session(session_id):
+    try:
+        student_id = 1  
+        mentorship_session = MentorshipSession.query.get(session_id)
 
-# @student.route('/mentorship_sessions/<int:session_id>/request', methods=['POST'])
-# def request_mentorship_session(session_id):
-#     data = request.json
-#     student_id = data['student_id']
-#     try:
-#         session = MentorshipSession.query.get(session_id)
-#         if not session:
-#             return jsonify({"error": "Session not found."}), 404
+        if not mentorship_session:
+            return jsonify({"error": "Mentorship session not found."}), 404
+        
+        if mentorship_session.status != "pending":
+            return jsonify({"error": "This mentorship session is not available for booking."}), 400
+        
+        if mentorship_session.student_id and mentorship_session.student_id != student_id:
+            return jsonify({"error": "You cannot book a session initiated by another student."}), 403
 
-#         # Check if the student already requested this session
-#         existing_request = db.session.query(mentorship_requests).filter_by(session_id=session_id, student_id=student_id).first()
-#         if existing_request:
-#             return jsonify({"error": "You have already requested this session."}), 400
+        mentorship_session.student_id = student_id
+        mentorship_session.status = "booked"
+        mentorship_session.updated_at = datetime.utcnow()
 
-#         # Add the request
-#         stmt = mentorship_requests.insert().values(session_id=session_id, student_id=student_id, status='pending')
-#         db.session.execute(stmt)
-#         db.session.commit()
-#         return jsonify({"message": "Mentorship session requested successfully."}), 200
-#     except Exception as e:
-#         return jsonify({"error": str(e)}), 400
+        db.session.commit()
 
-################################################################################################
+        return jsonify({"message": "Mentorship session booked successfully."}), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
 
 @student.route("/submit_milestone/<int:milestone_id>/<int:student_id>", methods=["POST"])
 def submit_milestone(milestone_id, student_id):
