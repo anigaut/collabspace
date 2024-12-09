@@ -144,39 +144,53 @@ def delete_viva_slot(slot_id):
     except Exception as e:
         return jsonify({"error": str(e)}), 400           
 
-# @ta.route('/mentorship_session/view', methods=['GET'])
-# def view_mentorship_requests():
-#     requests = MentorshipSessionRequests.query.filter_by(status="pending").all()
-#     result = [{
-#         "id": req.id,
-#         "student_id": req.student_id,
-#         "requested_date": req.requested_date.strftime("%Y-%m-%d"),
-#         "requested_time": req.requested_time.strftime("%H:%M"),
-#         "status": req.status
-#     } for req in requests]
-#     return jsonify({"requests": result}), 200
+from flask import Blueprint, request, jsonify
+from models import MentorshipSession, db
+from datetime import datetime
 
-# @ta.route('/mentorship_session/accept/<int:request_id>', methods=['PUT'])
-# def accept_mentorship_request(request_id):
-#     session_request = MentorshipSessionRequests.query.get(request_id)
+ta_routes = Blueprint('ta_routes', __name__)
 
-#     if not session_request:
-#         return jsonify({"error": "Request not found"}), 404
+# Route for TA to respond to a mentorship session request
+@ta_routes.route('/respond_mentorship_session/<int:session_id>', methods=['POST'])
+def respond_mentorship_session(session_id):
+    try:
+        # Get the current TA ID from the JWT
+        ta_id = 1  # Placeholder for JWT-based identity
+        # ta_id = get_jwt_identity()
 
-#     session_request.status = "accepted"
-#     db.session.commit()
-#     return jsonify({"message": "Mentorship session accepted."}), 200
+        # Find the mentorship session by ID
+        mentorship_session = MentorshipSession.query.get(session_id)
 
-# @ta.route('/mentorship_session/delete/<int:request_id>', methods=['DELETE'])
-# def delete_mentorship_request(request_id):
-#     session_request = MentorshipSessionRequests.query.get(request_id)
+        if not mentorship_session:
+            return jsonify({"error": "Mentorship session not found."}), 404
+        
+        # Ensure the session is in "pending" state before responding
+        if mentorship_session.status != "pending":
+            return jsonify({"error": "This mentorship session cannot be responded to."}), 400
 
-#     if not session_request:
-#         return jsonify({"error": "Request not found"}), 404
+        # Update mentorship session status based on TA's response
+        action = request.json.get("action")
+        
+        if action not in ["accept", "reject"]:
+            return jsonify({"error": "Invalid action. Please choose 'accept' or 'reject'."}), 400
+        
+        if action == "accept":
+            mentorship_session.status = "accepted"
+            mentorship_session.ta_id = ta_id
+            mentorship_session.updated_at = datetime.utcnow()
+            message = "Mentorship session request accepted."
+        elif action == "reject":
+            mentorship_session.status = "rejected"
+            mentorship_session.ta_id = None
+            mentorship_session.updated_at = datetime.utcnow()
+            message = "Mentorship session request rejected."
 
-#     session_request.status = "deleted"
-#     db.session.commit()
-#     return jsonify({"message": "Mentorship session deleted."}), 200
+        db.session.commit()
+
+        return jsonify({"message": message}), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
 
 ##############plag##################################################################################
 
