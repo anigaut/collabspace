@@ -13,7 +13,6 @@
           </div> -->
           <div class="card-content">
             <h3>Student ID: {{ submission.student_id }}</h3>
-            <!-- <p>{{ submission.description }}</p> -->
             
               <a v-bind:href="submission.github_branch_link">GitHub Link</a>
               <div class="lines">Plagiarism Status: {{ submission.plagiarism_status }}</div>
@@ -155,6 +154,7 @@ export default {
       )
       .then((respose) => {
         alert(respose.data.message);
+        window.location.href = `/submission/${milestoneID}`;
       })
       .catch((error) => {
         alert(error.response.data);
